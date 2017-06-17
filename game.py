@@ -1,8 +1,30 @@
+import random
+
 from enum import Enum
 
 
+class Game():
+
+    def __init__(self):
+        self.board = Board()
+
+    def play(self):
+        while True:
+            self.board.print_board()
+            new_piece = self._random_piece()
+            # generate a random piece
+            # player gets the place the piece
+            # print the board
+            # randomly cause avalanches
+
+    def _random_piece(self):
+        piece_type = random.choice(PieceType.__members__)
+        return Piece(piece_type)
+
+
 class Board():
-    def __init__(self, width=10, height=20):
+
+    def __init__(self, width=20, height=40):
         self._board_matrix = self.make_initial_board(width, height)
 
     def make_initial_board(self, width, height):
@@ -23,6 +45,7 @@ class PieceType(Enum):
 
 
 class Piece():
+
     def __init__(self, input_type):
         self.type = PieceType(input_type)
 
@@ -31,9 +54,8 @@ class Piece():
 
 
 def main():
-    board = Board()
-    board.add_piece(1, 1, 'red')
-    board.print_board()
+    game = Game()
+    game.play()
 
 
 if __name__ == '__main__':
