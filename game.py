@@ -12,14 +12,19 @@ class Game():
         while True:
             self.board.print_board()
             new_piece = self._random_piece()
-            # generate a random piece
-            # player gets the place the piece
-            # print the board
+            row, column = self._get_player_move()
+            self.board.add_piece(row, column, new_piece)
+            self.board.print_board()
             # randomly cause avalanches
 
     def _random_piece(self):
-        piece_type = random.choice(PieceType.__members__)
+        piece_type = random.choice(list(PieceType.__members__.values()))
         return Piece(piece_type)
+
+    def _get_player_move(self):
+        row = input("Enter the row you'd like to place your piece in:\n")
+        column = input("Column?\n")
+        return int(row), int(column)
 
 
 class Board():
@@ -33,8 +38,8 @@ class Board():
     def print_board(self):
         print(*self._board_matrix, sep='\n')
 
-    def add_piece(self, row, column, piecetype):
-        self._board_matrix[column][row] = Piece(piecetype)
+    def add_piece(self, row, column, piece):
+        self._board_matrix[column][row] = piece
 
 
 class PieceType(Enum):
