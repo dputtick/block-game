@@ -6,14 +6,17 @@ AGING_TIME = 1000
 WIDTH = 20
 PROBS = {
     'red': 0.2,
-    'yellow': 0.4,
-    'green': 0.4
+    'yellow': 0.3,
+    'green': 0.4,
+    'gray': 0.1
 }
 BREAK_PROBS = {
-    'red': 0.5,
+    'red': 0.3,
     'yellow': 0.2,
-    'green': 0.1
+    'green': 0.1,
+    'gray': 0
 }
+GRAY_CHANGE_PROB = 0.2
 
 
 class Game():
@@ -38,9 +41,9 @@ class Game():
 
     def _get_player_move(self, piece):
         self.board.show()
-        print("Current piece: {}".format(piece.type))
+        print("Current piece: {}".format(piece.color))
         if self.piece_queue:
-            print("Next piece: {}".format(self.piece_queue[-1].type))
+            print("Next piece: {}".format(self.piece_queue[-1].color))
         valid_moves = self.board.get_valid_moves()
         instring = input("Enter the column and row you'd like to place your piece in:\n")
         column, row = (int(n) for n in instring.split(' '))
@@ -105,12 +108,15 @@ class Board():
         for row, row_list in enumerate(self._board_matrix):
             for col, location in enumerate(row_list):
                 if location is not None:
-                    location.will_break = location.should_break()
-                    if location.will_break is False and row != 0:
-                        lchild, rchild = self.get_pieces_below(col, row)
-                        if lchild is None or lchild.will_break:
-                            if rchild is None or rchild.will_break:
-                                location.will_break = True
+                    if location.color == 'gray':
+                        location.check_gray_change()
+                    else:
+                        location.will_break = location.should_break()
+                        if location.will_break is False and row != 0:
+                            lchild, rchild = self.get_pieces_below(col, row)
+                            if lchild is None or lchild.will_break:
+                                if rchild is None or rchild.will_break:
+                                    location.will_break = True
 
     def break_pieces(self):
         for row, row_list in enumerate(self._board_matrix):
@@ -121,17 +127,16 @@ class Board():
 
 class Piece():
 
-    def __init__(self, input_type):
-        print(input_type)
-        self.type = input_type
-        self.break_probability = BREAK_PROBS[input_type]
+    def __init__(self, color):
+        self.color = color
+        self.break_probability = BREAK_PROBS[color]
         self.will_break = False
 
     def __repr__(self):
-        return '<Piece: type {}>'.format(str(self.type))
+        return '<Piece: {}>'.format(str(self.color))
 
     def __str__(self):
-        return self.type
+        return self.color
 
     @staticmethod
     def random_piece_factory():
@@ -143,6 +148,13 @@ class Piece():
     def should_break(self):
         """Use the breakage probability to decide whether the piece breaks."""
         return random.random() < self.break_probability
+
+    def check_gray_change(self):
+        if random.random() < GRAY_CHANGE_PROB:
+            colors, weights = zip(*PROBS.items())
+            (color,) = random.choices(colors, weights=weights)
+            self.color = color
+            self.break_probability = BREAK_PROBS[color]
 
 
 def main():
