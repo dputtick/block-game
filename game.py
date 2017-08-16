@@ -26,6 +26,7 @@ class Game():
         self.piece_queue = [Piece.random_piece_factory() for _ in range(N_PIECES)]
 
     def play(self):
+        """Run the main game loop."""
         while self.piece_queue:
             self._normal_turn()
         for _ in range(AGING_TIME):
@@ -33,6 +34,7 @@ class Game():
             self.board.show()
 
     def _normal_turn(self):
+        """Run one round of the normal, pre-aging move process."""
         new_piece = self.piece_queue.pop()
         column, row = self._get_player_move(new_piece)
         self.board.add_piece(column, row, new_piece)
@@ -40,6 +42,7 @@ class Game():
         self.board.break_pieces()
 
     def _get_player_move(self, piece):
+        """Get the player's choice of column and row for their next move."""
         self.board.show()
         print("Current piece: {}".format(piece.color))
         if self.piece_queue:
@@ -55,9 +58,10 @@ class Game():
 class Board():
 
     def __init__(self, width=5, height=40):
-        self._board_matrix = self.make_initial_board(width, height)
+        self._board_matrix = self._make_initial_board(width, height)
 
-    def make_initial_board(self, width, height):
+    def _make_initial_board(self, width, height):
+        """Setup the internal representation of the board."""
         board = []
         for n in range(height):
             if n % 2 == 0:
@@ -67,6 +71,7 @@ class Board():
         return board
 
     def show(self):
+        """Print a representation of the current board state."""
         print(*reversed(self._board_matrix), sep='\n')
 
     def add_piece(self, column, row, piece):
@@ -150,11 +155,13 @@ class Piece():
         return random.random() < self.break_probability
 
     def check_gray_change(self):
-        if random.random() < GRAY_CHANGE_PROB:
-            colors, weights = zip(*PROBS.items())
-            (color,) = random.choices(colors, weights=weights)
-            self.color = color
-            self.break_probability = BREAK_PROBS[color]
+        """Check whether a gray piece should change into another color."""
+        if self.color == 'gray':
+            if random.random() < GRAY_CHANGE_PROB:
+                colors, weights = zip(*PROBS.items())
+                (color,) = random.choices(colors, weights=weights)
+                self.color = color
+                self.break_probability = BREAK_PROBS[color]
 
 
 def main():
