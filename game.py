@@ -48,8 +48,8 @@ class Game():
         if self.piece_queue:
             print("Next piece: {}".format(self.piece_queue[-1].color))
         valid_moves = self.board.get_valid_moves()
-        instring = input("Enter the column and row you'd like to place your piece in:\n")
-        column, row = (int(n) for n in instring.split(' '))
+        input_str = input("Enter the column and row to place your piece in:\n")
+        column, row = (int(n) for n in input_str.split(' '))
         while (column, row) not in valid_moves:
             column, row = (int(n) for n in input("Please enter a valid move:\n").split(' '))
         return column, row
@@ -108,25 +108,26 @@ class Board():
                         valid_moves.append((col, row))
         return valid_moves
 
-    def check_breakage(self):
-        """Iterate through all placed pieces and check if they should break."""
+    def check_pieces(self):
+        """Check all placed pieces for breakage/color change."""
         for row, row_list in enumerate(self._board_matrix):
             for col, location in enumerate(row_list):
-                if location is not None:
+                if isinstance(location, Piece):
                     if location.color == 'gray':
                         location.check_gray_change()
                     else:
-                        location.will_break = location.should_break()
-                        if location.will_break is False and row != 0:
+                        location.will_break = location.check_should_break()
+                        if not location.will_break and row != 0:
                             lchild, rchild = self.get_pieces_below(col, row)
                             if lchild is None or lchild.will_break:
                                 if rchild is None or rchild.will_break:
                                     location.will_break = True
 
     def break_pieces(self):
+        """Change all pieces with `will_break` attribute to `None`."""
         for row, row_list in enumerate(self._board_matrix):
             for col, location in enumerate(row_list):
-                if location and location.will_break:
+                if isinstance(location, Piece) and location.will_break:
                     self._board_matrix[row][col] = None
 
 
@@ -150,7 +151,7 @@ class Piece():
         (color,) = random.choices(colors, weights=weights)
         return Piece(color)
 
-    def should_break(self):
+    def check_should_break(self):
         """Use the breakage probability to decide whether the piece breaks."""
         return random.random() < self.break_probability
 
